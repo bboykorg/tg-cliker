@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -8,7 +7,7 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-        <style>
+    <style>
         .count {
             color: black;
             margin-bottom: 30vh;
@@ -95,85 +94,109 @@
             padding: 10px 20px;
             color:black;
             border-color:black;
-            border-radius: 10px; /* Закругленные края */
-            border: 2px solid #ccc; /* Граница */
-            font-size: 1.5em; /* Размер шрифта */
-            text-align: center; /* Центрирование текста */
+            border-radius: 10px;
+            border: 2px solid #ccc;
+            font-size: 1.5em;
+            text-align: center;
+            margin-top: 7vh;
     </style>
 </head>
 
 <body>
-<header class="p-3 text-bg-dark">
-    <div class="container">
-      <div class="d-flex flex-wrap align-items-center justify-content-center justify-content-lg-start">
-        <a href="/" class="d-flex align-items-center mb-2 mb-lg-0 text-white text-decoration-none">
-          <svg class="bi me-2" width="40" height="32" role="img" aria-label="Bootstrap"><use xlink:href="#bootstrap"></use></svg>
-        </a>
+<header class="p-3">
 
-        <ul class="nav col-12 col-lg-auto me-lg-auto mb-2 justify-content-center mb-md-0">
-              <li><a href="/" class="nav-link px-3 text-secondary">Home</a></li>
-              <li><a href="/improvements" class="nav-link px-3 text-white">Improvements</a></li>
-        </ul>
-
-      </div>
+</header>
+<div class="center-screen2">
+    <img class="coin-count" src="/static/coin.png">
+    <div class="count" id="count">{{ click_count }}</div>
+</div>
+<div class="center-screen">
+    <button id="clicker" class="clickButton">
+        <img class="coin" src="/static/coin.png">
+    </button>
+</div>
+<div class="rounded-border">
+    <h3 id="energy">Ваша энергия: {{energy}}/{{current_energy}}</h3>
+</div>
+<footer class="footer">
+    <div class="buttons">
+        <a href="/"><i class="bi bi-house"></i></a>
+        <a href="/improvements"><i class="bi bi-bar-chart-line"></i></a>
+        <a href="/profile"><i class="bi bi-person-bounding-box"></i></a>
     </div>
-  </header>
-    <div class="center-screen2">
-        <img  class="coin-count" src="/static/coin.png">
-        <div class="count" id="count">{{ click_count }}</div>
-    </div>
-    <div class="center-screen">
-        <form action="/clicker" method="post">
-            <input type="hidden" id="user_id" name="user_id" value="1">
-            <button class="clickButton">
-                <img class="coin" src="/static/coin.png">
-            </button>
-        </form>
-    </div>
-    <div class="rounded-border">
-        <h3 id="energy">Ваша энергия: {{energy}}/{{current_energy}}</h3>
-    </div>
-    <footer class="footer">
-        <div class="buttons">
-            <a href="/"><i class="bi bi-house"></i></a>
-            <a href="/improvements"><i class="bi bi-bar-chart-line"></i></a>
-             <a href="/profile"><i class="bi bi-person-bounding-box"></i></a>
-        </div>
-    </footer>
+</footer>
 
 </body>
 <script type="text/javascript">
     Telegram.WebApp.ready();
     var initData = Telegram.WebApp.initDataUnsafe;
     console.log(initData);
-    var userId = initData.user.id;
-    document.getElementById('user_id').value = userId;
-</script>
-<script type="text/javascript">
-    const $coins = document.getElementById('count')
-    const BOT = {{bot}};
-    if (BOT == 1) {
-        const update = () => {
-            $coins.innerHTML = +$coins.innerHTML + {{ improvement }}
-        }
-    }
-    setInterval(update, 2000)
-</script>
-<script type="text/javascript">
-    let currentEnergy = {{energy}};
-    const maxEnergy = {{current_energy}};
-    const updateEnergy = () => {
-            if (currentEnergy < maxEnergy) {
-                currentEnergy += 3; // Увеличиваем энергию на 3
-                // Ограничиваем значение энергии до максимума
-                if (currentEnergy > maxEnergy) {
-                    currentEnergy = maxEnergy;
-                }
-                document.getElementById('energy').innerHTML = `Ваша энергия: ${currentEnergy}/${maxEnergy}`;
-            }
+    var userId = initData.user?.id;
+    if (!userId){
+        userID = 1;
+    } else {
+        document.getElementById('user_id').value = userId
     }
 
-    setInterval(updateEnergy, 3000);
+    var add = 1;
+    var clicks = 0;
+    var m_energy = 500
+    const $coins = document.getElementById('count')
+    const $energy = document.getElementById('energy')
+
+    let updateInfo = () => {
+        const url = document.location.origin
+        fetch(url + "/info/" + (userId ?? 1)).then((result) => result.json()).then((info) => {
+            const {
+                add_improvements,
+                bot,
+                coins,
+                cost_bot,
+                cost_energy,
+                cost_improvements,
+                energy,
+                id_energy,
+                id_improvements,
+                max_energy
+            } = info
+            add = add_improvements
+            m_energy = max_energy
+            $coins.innerHTML = coins
+            $energy.innerHTML = `Ваша энергия: ${Math.min(energy, max_energy)}/${max_energy}`
+
+            console.log(info)
+        })
+    };
+    updateInfo()
+    setInterval(updateInfo, 3000);
+
+    const $btn = document.getElementById('clicker')
+
+    $btn.onclick = () => {
+        const enrg = +$energy.innerHTML.split(":")[1].split("/")[0]
+       if (enrg - add >= 0) {
+            $coins.innerHTML = +$coins.innerHTML + add
+            console.log(enrg)
+            $energy.innerHTML = `Ваша энергия: ${enrg - add}/${m_energy}`
+            clicks++;
+            if (clicks >= 3) {
+                const url = document.location.origin
+                fetch(url + "/clicker/" + (userId ?? 1) + "/" + clicks + "/" + add).then((result) => result.json()).then((clicker) => {
+                    const {
+                        coins,
+                        energy
+                    } = clicker
+                    $coins.innerHTML = coins
+                    $energy.innerHTML = `Ваша энергия: ${Math.min(energy, max_energy)}/${max_energy}`
+                })
+                clicks = 0
+            }
+       }
+    }
+
+
 </script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+        crossorigin="anonymous"></script>
 </html>

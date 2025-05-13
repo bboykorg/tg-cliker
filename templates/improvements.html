@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -95,61 +94,43 @@
 <body>
 <header class="p-3 text-bg-dark">
     <div class="container">
-      <div class="d-flex flex-wrap align-items-center justify-content-center justify-content-lg-start">
-        <a href="/" class="d-flex align-items-center mb-2 mb-lg-0 text-white text-decoration-none">
-          <svg class="bi me-2" width="40" height="32" role="img" aria-label="Bootstrap"><use xlink:href="#bootstrap"></use></svg>
-        </a>
+        <div class="d-flex flex-wrap align-items-center justify-content-center justify-content-lg-start">
+            <a href="/" class="d-flex align-items-center mb-2 mb-lg-0 text-white text-decoration-none">
+                <svg class="bi me-2" width="40" height="32" role="img" aria-label="Bootstrap">
+                    <use xlink:href="#bootstrap"></use>
+                </svg>
+            </a>
 
-        <ul class="nav col-12 col-lg-auto me-lg-auto mb-2 justify-content-center mb-md-0">
-          <li><a href="/" class="nav-link px-3 text-secondary">Home</a></li>
-          <li><a href="/improvements" class="nav-link px-3 text-white">Improvements</a></li>
-        </ul>
-      </div>
+        </div>
     </div>
-  </header>
+</header>
 <div class="center-screen2">
-    <img  class="coin" src="/static/coin.png">
+    <img class="coin" src="/static/coin.png">
     <div class="count" id="count">{{ click_count }}</div>
 </div>
 
 <div class="main center-screen">
     <section>
-        {% if improvement < 20 %}
         <form action="/check_improvements" method="post">
             <input type="hidden" id="user_id" name="user_id" value="1">
             <button class="button buttons">
-                <h3>Купить следующее улучшение</h3>
-                <h5>Цена следующего улучшения: {{ cost }}</h5>
+                <h3 id="cost_impr">z</h3>
             </button>
         </form>
-        {% else %}
-        <h3 class="rounded-border">Улучшение прокачано</h3>
-        {% endif %}
         <br>
-        {% if points < 20 %}
         <form action="/energy" method="post">
             <input type="hidden" id="user_id" name="user_id" value="1">
             <button class="button buttons">
-                <h3>Купить следующее улучшение энергии</h3>
-                <h3>Цена: {{cost_energy}}</h3>
+                <h3 id="energy"></h3>
             </button>
         </form>
-        {% else %}
-        <h3 class="rounded-border">Энергия прокачана на максимум</h3>
-        {% endif %}
         <br>
-        {% if bot == 0 %}
         <form action="/toggle_bot" method="post">
             <input type="hidden" id="user_id" name="user_id" value="1">
             <button class="button buttons">
-                <h3>Включить бота-автокликера</h3>
-                <h3>Цена: 25000</h3>
+                <h3 id="buy_bot"></h3>
             </button>
         </form>
-        {% else %}
-        <h3 class="rounded-border">Бот куплен</h3>
-        {% endif %}
-
     </section>
 </div>
 <footer class="footer">
@@ -157,7 +138,7 @@
         <div class="buttons">
             <a href="/"><i class="bi bi-house"></i></a>
             <a href="/improvements"><i class="bi bi-bar-chart-line"></i></a>
-             <a href="/profile"><i class="bi bi-person-bounding-box"></i></a>
+            <a href="/profile"><i class="bi bi-person-bounding-box"></i></a>
         </div>
     </div>
 </footer>
@@ -165,17 +146,99 @@
 <script type="text/javascript">
     Telegram.WebApp.ready();
     var initData = Telegram.WebApp.initDataUnsafe;
-    var userId = initData.user.id;
-    document.getElementById('user_id').value = userId;
-</script>
-<script type="text/javascript">
-    const $coins = document.getElementById('count')
-
-    const update = () => {
-        $coins.innerHTML = +$coins.innerHTML + {{ improvement_lvl }}
+    console.log(initData);
+    var userId = initData.user?.id;
+    if (!userId) {
+        userId = 1;
+    } else {
+        // Обновляем все скрытые input с user_id
+        document.querySelectorAll('input[name="user_id"]').forEach(input => {
+            input.value = userId;
+        });
     }
 
-    setInterval(update, 2000)
+    const $coins = document.getElementById('count');
+    const $costImpr = document.getElementById('cost_impr');
+    const $energyBtn = document.getElementById('energy');
+    const $botBtn = document.getElementById('buy_bot');
+
+    // Функция для обновления информации
+    let updateInfo = () => {
+        const url = document.location.origin;
+        fetch(url + "/info/" + userId)
+            .then((result) => result.json())
+            .then((info) => {
+                const {
+                    coins,
+                    cost_bot,
+                    cost_energy,
+                    cost_improvements,
+                    id_energy,
+                    id_improvements,
+                    bot
+                } = info;
+
+                // Обновляем количество монет
+                $coins.innerHTML = coins;
+
+                // Обновляем кнопку улучшений
+                if (id_improvements < 20) {
+                    $costImpr.innerHTML = `Цена следующего улучшения: ${cost_improvements}`;
+                } else {
+                    $costImpr.innerHTML = "Улучшения максимальны";
+                }
+
+                // Обновляем кнопку энергии
+                if (id_energy < 20) {
+                    $energyBtn.innerHTML = `Улучшить энергию (${cost_energy})`;
+                } else {
+                    $energyBtn.innerHTML = "Энергия максимальна";
+                }
+
+                // Обновляем кнопку бота
+                if (bot) {
+                    $botBtn.innerHTML = "Бот активен";
+                    $botBtn.disabled = true;
+                } else {
+                    $botBtn.innerHTML = `Купить бота (${cost_bot})`;
+                    $botBtn.disabled = false;
+                }
+            })
+            .catch((error) => {
+                console.error('Error fetching data:', error);
+            });
+    };
+
+    // Обработчики для кнопок
+    document.querySelector('form[action="/check_improvements"]').addEventListener('submit', function(e) {
+        e.preventDefault();
+        fetch(this.action, {
+            method: 'POST',
+            body: new URLSearchParams(new FormData(this))
+        }).then(() => updateInfo());
+    });
+
+    document.querySelector('form[action="/energy"]').addEventListener('submit', function(e) {
+        e.preventDefault();
+        fetch(this.action, {
+            method: 'POST',
+            body: new URLSearchParams(new FormData(this))
+        }).then(() => updateInfo());
+    });
+
+    document.querySelector('form[action="/toggle_bot"]').addEventListener('submit', function(e) {
+        e.preventDefault();
+        fetch(this.action, {
+            method: 'POST',
+            body: new URLSearchParams(new FormData(this))
+        }).then(() => updateInfo());
+    });
+
+    // Первоначальное обновление и периодический опрос
+    updateInfo();
+    setInterval(updateInfo, 5000); // Обновляем каждые 5 секунд
 </script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+        crossorigin="anonymous"></script>
 </html>

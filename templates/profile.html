@@ -55,16 +55,12 @@
           <svg class="bi me-2" width="40" height="32" role="img" aria-label="Bootstrap"><use xlink:href="#bootstrap"></use></svg>
         </a>
 
-        <ul class="nav col-12 col-lg-auto me-lg-auto mb-2 justify-content-center mb-md-0">
-          <li><a href="/" class="nav-link px-3 text-secondary">Home</a></li>
-          <li><a href="/improvements" class="nav-link px-3 text-white">Improvements</a></li>
-        </ul>
       </div>
     </div>
 </header>
 <div class="text-center">
-  <img src="/static/user.jpg" width="150" class="rounded-5 border shadow mt-5" alt="">
-    <h2>username</h2>
+  <img id="photo" src="/static/user.jpg" width="150" class="rounded-5 border shadow mt-5">
+    <h2 id="username"> your name</h2>
     <br>
     <h2>Инвентарь</h2>
 </div>
@@ -85,34 +81,16 @@
 <script type="text/javascript">
     Telegram.WebApp.ready();
     var initData = Telegram.WebApp.initDataUnsafe;
-    var userId = initData.user.id;
-    document.getElementById('user_id').value = userId;
-</script>
-<script type="text/javascript">
-    const $coins = document.getElementById('count')
-
-    const update = () => {
-        $coins.innerHTML = +$coins.innerHTML + {{ improvement }}
+    var userId = initData.user?.id;
+    if (!userId){
+        userID = 1;
+    } else {
+        document.getElementById('user_id').value = userId
     }
-
-    setInterval(update, 2000)
-</script>
-<script type="text/javascript">
-    let currentEnergy = {{energy}};
-    const maxEnergy = {{current_energy}};
-
-    const updateEnergy = () => {
-        if (currentEnergy < maxEnergy) {
-            currentEnergy += 3; // Увеличиваем энергию на 3
-            // Ограничиваем значение энергии до максимума
-            if (currentEnergy > maxEnergy) {
-                currentEnergy = maxEnergy;
-            }
-            document.getElementById('energy').innerHTML = `Ваша энергия: ${currentEnergy}/${maxEnergy}`;
-        }
-    }
-
-    setInterval(updateEnergy, 1500);
+    var photo = initData.user?.photo_url;
+    var name = initData.user?.first_name;
+    document.getElementById('photo').value = photo
+    document.getElementById('username').value = name
 </script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 </html>

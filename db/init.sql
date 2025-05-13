@@ -1,3 +1,16 @@
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET idle_in_transaction_session_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SELECT pg_catalog.set_config('search_path', '', false);
+SET check_function_bodies = false;
+SET xmloption = content;
+SET client_min_messages = warning;
+SET row_security = off;
+SET default_tablespace = '';
+SET default_table_access_method = heap;
+
 CREATE TABLE public.cards (
     "ID" integer NOT NULL,
     name character varying,
@@ -15,7 +28,7 @@ ALTER TABLE public.cards ALTER COLUMN "ID" ADD GENERATED ALWAYS AS IDENTITY (
 );
 
 CREATE TABLE public.improvements (
-    "ID" bigint NOT NULL,
+    "ID" bigint NOT NULL PRIMARY KEY,
     cost integer NOT NULL,
     add integer DEFAULT 1 NOT NULL,
     energy integer DEFAULT 1000 NOT NULL
@@ -80,8 +93,8 @@ ALTER TABLE public.score ALTER COLUMN "ID" ADD GENERATED ALWAYS AS IDENTITY (
 );
 
 COPY public.improvements ("ID", cost, add, energy) FROM stdin;
+1	500	    1	500
 2	1000	2	1000
-1	500	1	500
 3	1500	3	1500
 4	2500	4	2000
 5	5000	5	2500
@@ -124,6 +137,16 @@ COPY public.improvements_energy ("ID", energy, cost) FROM stdin;
 19	9500	51200000
 20	10000	102400000
 \.
+
+SELECT pg_catalog.setval('public."cards_ID_seq"', 1, false);
+
+SELECT pg_catalog.setval('public."improvements_ID_seq"', 1, false);
+
+SELECT pg_catalog.setval('public."improvements_energy_ID_seq"', 20, true);
+
+SELECT pg_catalog.setval('public."inventory_ID_seq"', 1, false);
+
+SELECT pg_catalog.setval('public."score_ID_seq"', 9, true);
 
 ALTER TABLE ONLY public.improvements
     ADD CONSTRAINT "Users_pkey" PRIMARY KEY ("ID");

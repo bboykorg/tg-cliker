@@ -287,20 +287,21 @@ def toggle_bot():
     user_id = request.form.get('user_id', type=int)
     with get_db_connection() as conn:
         with conn.cursor() as cursor:
-            # Проверка баланса перед покупкой
-            cursor.execute("SELECT \"score\" FROM \"score\" WHERE \"ID_user\" = %s", (user_id,))
+
+            cursor.execute("SELECT \"score\", \"bot\" FROM \"score\" WHERE \"ID_user\" = %s", (user_id,))
             result_count = cursor.fetchone()
-            if result_count is None or result_count[0] < cost_bot:
-                return redirect(url_for('improvements'))
-            # Обновление значений в базе данных
-            cursor.execute(
-                "UPDATE \"score\" SET \"bot\" = 1, \"score\" = \"score\" - %s WHERE \"ID_user\" = %s",
-                (cost_bot, user_id,)
-            )
+            if result_count[1] == 0:
+                if result_count is None or result_count[0] < cost_bot:
+                    return "0"
+                # Обновление значений в базе данных
+                cursor.execute(
+                    "UPDATE \"score\" SET \"bot\" = 1, \"score\" = \"score\" - %s WHERE \"ID_user\" = %s",
+                    (cost_bot, user_id,)
+                )
             conn.commit()
 
     session['user_id'] = user_id
-    return redirect(url_for('improvements'))
+    return "1"
 
 
 @app.route('/energy', methods=['post'])

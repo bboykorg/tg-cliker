@@ -114,20 +114,20 @@
         <form action="/check_improvements" method="post">
             <input type="hidden" id="user_id" name="user_id" value="1">
             <button class="button buttons">
-                <h3 id="cost_impr">z</h3>
+                <h3 id="impr"></h3>
             </button>
         </form>
         <br>
         <form action="/energy" method="post">
             <input type="hidden" id="user_id" name="user_id" value="1">
-            <button class="button buttons">
+            <button id="energy_btn" class="button buttons">
                 <h3 id="energy"></h3>
             </button>
         </form>
         <br>
         <form action="/toggle_bot" method="post">
             <input type="hidden" id="user_id" name="user_id" value="1">
-            <button class="button buttons">
+            <button id="buy_bot_btn" type="submit" class="button buttons">
                 <h3 id="buy_bot"></h3>
             </button>
         </form>
@@ -158,9 +158,10 @@
     }
 
     const $coins = document.getElementById('count');
-    const $costImpr = document.getElementById('cost_impr');
+    const $Impr = document.getElementById('impr');
     const $energyBtn = document.getElementById('energy');
-    const $botBtn = document.getElementById('buy_bot');
+    const $botTextBtn = document.getElementById('buy_bot');
+    const $botBtn = document.getElementById('buy_bot_btn');
 
     // Функция для обновления информации
     let updateInfo = () => {
@@ -183,24 +184,24 @@
 
                 // Обновляем кнопку улучшений
                 if (id_improvements < 20) {
-                    $costImpr.innerHTML = `Цена следующего улучшения: ${cost_improvements}`;
+                    $Impr.innerHTML = `Цена следующего улучшения: ${cost_improvements}`;
                 } else {
-                    $costImpr.innerHTML = "Улучшения максимальны";
+                    $Impr.innerHTML = "Улучшения максимальны";
                 }
 
                 // Обновляем кнопку энергии
                 if (id_energy < 20) {
-                    $energyBtn.innerHTML = `Улучшить энергию (${cost_energy})`;
+                    $energyBtn.innerHTML = `Улучшить энергию: ${cost_energy}`;
                 } else {
                     $energyBtn.innerHTML = "Энергия максимальна";
                 }
 
                 // Обновляем кнопку бота
-                if (bot) {
-                    $botBtn.innerHTML = "Бот активен";
+                if (bot === 1) {
+                    $botTextBtn.innerHTML = "Бот активен";
                     $botBtn.disabled = true;
                 } else {
-                    $botBtn.innerHTML = `Купить бота (${cost_bot})`;
+                    $botTextBtn.innerHTML = `Купить бота: ${cost_bot}`;
                     $botBtn.disabled = false;
                 }
             })

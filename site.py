@@ -39,7 +39,7 @@ def info(user_id):
         "id_improvements": result2[0],
         "add_improvements": result2[2],
         "cost_improvements": result2[1],
-        "bot": result2[7],
+        "bot": result2[8],
         "cost_bot": cost_bot
 
     }

@@ -144,13 +144,20 @@ def index():
     else:
         with get_db_connection() as conn:
             with conn.cursor() as cursor:
-                cursor.execute("SELECT \"score\", \"ID_improvements\" FROM \"score\" WHERE \"ID_user\" = %s",
+                cursor.execute("SELECT \"ID_user\" FROM \"score\" WHERE \"ID_user\" = %s",
                                (user_id,))
-                result = cursor.fetchone()
-                if result:
-                    click_count = result[0]
+                res = cursor.fetchone()
+                if res is None:
+                     cursor.execute("INSERT INTO \"score\" (\"score\", \"ID_user\", \"ID_improvements\", \"bot\", \"energy_lvl\", \"energy\") VALUES (5000, %s, 1, 0, 1, 500)",
+                                    (user_id,))
                 else:
-                    click_count = 1
+                    cursor.execute("SELECT \"score\", \"ID_improvements\" FROM \"score\" WHERE \"ID_user\" = %s",
+                                   (user_id,))
+                    result = cursor.fetchone()
+                    if result:
+                        click_count = result[0]
+                    else:
+                        click_count = 1
 
     return render_template("index.html", click_count=click_count)
 
